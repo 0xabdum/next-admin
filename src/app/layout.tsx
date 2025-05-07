@@ -25,13 +25,13 @@ export default function RootLayout({
       <body
         className={cn(
           'flex flex-col min-h-dvh antialiased',
-          interFonts.variable
+          interFonts.variable,
+          interFonts.className
         )}
       >
         <ThemeProvider
           attribute='class'
-          defaultTheme='system'
-          enableSystem
+          defaultTheme='light'
           disableTransitionOnChange
         >
           {children}
