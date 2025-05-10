@@ -10,6 +10,7 @@
     "prismaMigrateLocal": "dotenv -e .env.local -- npx prisma migrate dev"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.0.1",
     "@prisma/client": "^6.7.0",
     "@radix-ui/react-avatar": "^1.1.9",
     "@radix-ui/react-collapsible": "^1.1.10",
@@ -28,6 +29,7 @@
     "prisma": "^6.7.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.56.3",
     "tailwind-merge": "^3.2.0",
     "zod": "^3.24.4"
   },
