@@ -18,6 +18,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormMessagePassword,
+  FormMessagePasswordItem,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -25,14 +27,35 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 
+type FormData = z.infer<typeof CreateUserSchema>;
+
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
   const [showPassword, setShow] = useState([false, false]);
   const [showPw, ShowConfirmPw] = showPassword;
+  const [focusPassword, setFocus] = useState([false, false]);
+  const [focusPw, focusConfirmPw] = focusPassword;
+  const [passValid, setPassValid] = useState({
+    password: {
+      len: false,
+      low: false,
+      cap: false,
+      num: false,
+    },
+    retype_password: {
+      same: false,
+      len: false,
+      low: false,
+      cap: false,
+      num: false,
+    },
+  });
+  const [disabled, setDisabled] = useState(true);
   const form = useForm<z.infer<typeof CreateUserSchema>>({
     resolver: zodResolver(CreateUserSchema),
+    mode: 'onSubmit',
     defaultValues: {
       username: '',
       firstName: '',
@@ -43,9 +66,51 @@ export function RegisterForm({
     },
   });
 
-  function onSubmit(values: z.infer<typeof CreateUserSchema>) {
+  async function onSubmit(values: z.infer<typeof CreateUserSchema>) {
+    // await form.trigger();
     console.log(values);
   }
+
+  const handleKeyUp = async (fieldName: keyof FormData) => {
+    await form.trigger(fieldName);
+
+    // const isValid = await form.trigger();
+    // const formValues = form.getValues();
+
+    if (['password', 'confirmPassword'].includes(fieldName)) {
+      const pwdLength = /^.{8,50}$/;
+      const pwdUpper = /[A-Z]+/;
+      const pwdLower = /[a-z]+/;
+      const pwdNumber = /[0-9]+/;
+      const pwdSpecial = /[!@#$%^&()'[\]"?+-/*={}.,;:_]+/;
+
+      const password = form.getValues(fieldName)?.toString() || '';
+      setPassValid((prev) => ({
+        ...prev,
+        [fieldName]: {
+          len: pwdLength.test(password),
+          low: pwdLower.test(password),
+          cap: pwdUpper.test(password),
+          num: pwdNumber.test(password) && pwdSpecial.test(password),
+          ...(fieldName === 'confirmPassword'
+            ? { same: password === form.getValues('password') }
+            : {}),
+        },
+      }));
+    }
+    // console.log(_.isEqual(formValues, form.getValues()));
+    // const oldValues = JSON.stringify({
+    //   first_name: user.first_name,
+    //   last_name: user.last_name,
+    //   email: user.email,
+    //   phone_number: user.phone_number.replace('0', ''),
+    //   password: !user.is_password_set ? '' : undefined,
+    //   retype_password: !user.is_password_set ? '' : undefined,
+    //   is_password_set: user.is_password_set,
+    // });
+    // setDisabled(isValid);
+  };
+  console.log(form.getFieldState('password').invalid);
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -57,34 +122,40 @@ export function RegisterForm({
         <CardContent className='space-y-6'>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-              <div className='flex items-center space-x-1'>
-                <FormField
-                  control={form.control}
-                  name='firstName'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder='Enter your first name' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='lastName'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder='Enter your last name' {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name='firstName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter your first name'
+                        {...field}
+                        onKeyUp={() => handleKeyUp('firstName')}
+                      />
+                    </FormControl>
+                    <FormMessage className='text-xs' />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='lastName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter your last name'
+                        {...field}
+                        onKeyUp={() => handleKeyUp('lastName')}
+                      />
+                    </FormControl>
+                    <FormMessage className='text-xs' />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name='email'
@@ -92,24 +163,32 @@ export function RegisterForm({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='Enter your email' {...field} />
+                      <Input
+                        placeholder='Enter your email'
+                        {...field}
+                        onKeyUp={() => handleKeyUp('email')}
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs' />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name='password'
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <div className='relative'>
+                      <div className='relative' aria-invalid={true}>
                         <Input
                           type={showPw ? 'text' : 'password'}
                           placeholder='Enter your password'
                           {...field}
+                          aria-invalid={fieldState.invalid ? 'true' : 'false'}
+                          onKeyUp={() => handleKeyUp('password')}
+                          onFocus={() => setFocus([true, focusConfirmPw])}
+                          onBlur={() => setFocus([false, focusConfirmPw])}
                         />
                         <Button
                           type='button'
@@ -131,14 +210,34 @@ export function RegisterForm({
                         </Button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    {focusPw && (
+                      <FormMessagePassword className='w-full'>
+                        <FormMessagePasswordItem
+                          isValid={passValid.password.len}
+                          message='Min. 8 characters, and Max. 50 characters'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.password.low}
+                          message='At least one lowercase letter'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.password.cap}
+                          message='At least one uppercase letter'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.password.num}
+                          message='Must include numbers, punctuation, or symbols'
+                        />
+                      </FormMessagePassword>
+                    )}
+                    {/* <FormMessage className='text-xs' /> */}
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name='confirmPassword'
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Confirm</FormLabel>
                     <FormControl>
@@ -147,6 +246,10 @@ export function RegisterForm({
                           type={ShowConfirmPw ? 'text' : 'password'}
                           placeholder='Confirm your password'
                           {...field}
+                          aria-invalid={fieldState.invalid ? 'true' : 'false'}
+                          onKeyUp={() => handleKeyUp('confirmPassword')}
+                          onFocus={() => setFocus([focusPw, true])}
+                          onBlur={() => setFocus([focusPw, false])}
                         />
                         <Button
                           type='button'
@@ -155,6 +258,9 @@ export function RegisterForm({
                           className='absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7'
                           onClick={() =>
                             setShow(() => [showPw, !ShowConfirmPw])
+                          }
+                          onFocus={() =>
+                            setFocus(() => [focusPw, !focusConfirmPw])
                           }
                         >
                           {showPw ? (
@@ -168,7 +274,31 @@ export function RegisterForm({
                         </Button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    {/* <FormMessage className='text-xs' /> */}
+                    {focusConfirmPw && (
+                      <FormMessagePassword className='w-full'>
+                        <FormMessagePasswordItem
+                          isValid={passValid.retype_password.same}
+                          message='Password and confirm password do not match'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.retype_password.len}
+                          message='Min. 8 characters, and Max. 50 characters'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.retype_password.low}
+                          message='At least one lowercase letter'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.retype_password.cap}
+                          message='At least one uppercase letter'
+                        />
+                        <FormMessagePasswordItem
+                          isValid={passValid.retype_password.num}
+                          message='Must include numbers, punctuation, or symbols'
+                        />
+                      </FormMessagePassword>
+                    )}
                   </FormItem>
                 )}
               />

@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Geist, Geist_Mono, Inter, Open_Sans } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { cn } from '@/utils';
 
-const interFonts = Inter({
-  variable: '--font-inter',
+const openSansFonts = Open_Sans({
+  variable: '--font-open-sans',
   display: 'swap',
   subsets: ['latin'],
 });
@@ -25,8 +25,8 @@ export default function RootLayout({
       <body
         className={cn(
           'flex flex-col min-h-dvh antialiased',
-          interFonts.variable,
-          interFonts.className
+          openSansFonts.variable,
+          openSansFonts.className
         )}
       >
         <ThemeProvider
