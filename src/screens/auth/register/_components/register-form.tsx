@@ -88,6 +88,7 @@ export function RegisterForm({
       });
       const result = await response.json();
       if (response.ok) {
+        await form.reset();
         toast.success(result.message, {
           position: 'top-right',
           autoClose: 5000,
