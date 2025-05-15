@@ -27,6 +27,9 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import slugify from 'react-slugify';
+import { Slide, toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
+import Spinner from '@/components/ui/spinner';
 
 type FormData = z.infer<typeof CreateUserSchema>;
 
@@ -34,6 +37,7 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const router = useRouter();
   const [loading, startTransition] = useTransition();
   const [showPassword, setShow] = useState([false, false]);
   const [showPw, ShowConfirmPw] = showPassword;
@@ -46,7 +50,7 @@ export function RegisterForm({
       cap: false,
       num: false,
     },
-    retype_password: {
+    confirmPassword: {
       same: false,
       len: false,
       low: false,
@@ -83,7 +87,33 @@ export function RegisterForm({
         body: JSON.stringify(body),
       });
       const result = await response.json();
-      console.log(result);
+      if (response.ok) {
+        toast.success(result.message, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: 'colored',
+          transition: Slide,
+          onClose: () => router.push('/login'),
+        });
+      } else {
+        toast.error(result.message, {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          progress: undefined,
+          theme: 'colored',
+          transition: Slide,
+          // onClose: () => router.push('/login'),
+        });
+      }
     });
   }
 
@@ -94,6 +124,7 @@ export function RegisterForm({
     // const formValues = form.getValues();
 
     if (['password', 'confirmPassword'].includes(fieldName)) {
+      console.log(fieldName);
       const pwdLength = /^.{8,50}$/;
       const pwdUpper = /[A-Z]+/;
       const pwdLower = /[a-z]+/;
@@ -121,7 +152,7 @@ export function RegisterForm({
     //   email: user.email,
     //   phone_number: user.phone_number.replace('0', ''),
     //   password: !user.is_password_set ? '' : undefined,
-    //   retype_password: !user.is_password_set ? '' : undefined,
+    //   confirmPassword: !user.is_password_set ? '' : undefined,
     //   is_password_set: user.is_password_set,
     // });
     // setDisabled(isValid);
@@ -294,23 +325,23 @@ export function RegisterForm({
                     {focusConfirmPw && (
                       <FormMessagePassword className='w-full'>
                         <FormMessagePasswordItem
-                          isValid={passValid.retype_password.same}
+                          isValid={passValid.confirmPassword.same}
                           message='Password and confirm password do not match'
                         />
                         <FormMessagePasswordItem
-                          isValid={passValid.retype_password.len}
+                          isValid={passValid.confirmPassword.len}
                           message='Min. 8 characters, and Max. 50 characters'
                         />
                         <FormMessagePasswordItem
-                          isValid={passValid.retype_password.low}
+                          isValid={passValid.confirmPassword.low}
                           message='At least one lowercase letter'
                         />
                         <FormMessagePasswordItem
-                          isValid={passValid.retype_password.cap}
+                          isValid={passValid.confirmPassword.cap}
                           message='At least one uppercase letter'
                         />
                         <FormMessagePasswordItem
-                          isValid={passValid.retype_password.num}
+                          isValid={passValid.confirmPassword.num}
                           message='Must include numbers, punctuation, or symbols'
                         />
                       </FormMessagePassword>
@@ -318,8 +349,15 @@ export function RegisterForm({
                   </FormItem>
                 )}
               />
-              <Button type='submit' className='w-full'>
-                Submit
+              <Button type='submit' className='w-full' disabled={loading}>
+                {loading ? (
+                  <div className='flex items-center space-x-1.5'>
+                    <Spinner />
+                    <span>Loading</span>
+                  </div>
+                ) : (
+                  'Submit'
+                )}
               </Button>
             </form>
           </Form>

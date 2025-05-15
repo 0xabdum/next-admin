@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Inter, Open_Sans } from 'next/font/google';
+import { Open_Sans } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { cn } from '@/utils';
+import { ToastContainer } from 'react-toastify';
 
 const openSansFonts = Open_Sans({
   variable: '--font-open-sans',
@@ -36,6 +37,7 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <ToastContainer />
       </body>
     </html>
   );
