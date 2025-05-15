@@ -23,9 +23,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
+import slugify from 'react-slugify';
 
 type FormData = z.infer<typeof CreateUserSchema>;
 
@@ -33,6 +34,7 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
+  const [loading, startTransition] = useTransition();
   const [showPassword, setShow] = useState([false, false]);
   const [showPw, ShowConfirmPw] = showPassword;
   const [focusPassword, setFocus] = useState([false, false]);
@@ -52,7 +54,6 @@ export function RegisterForm({
       num: false,
     },
   });
-  const [disabled, setDisabled] = useState(true);
   const form = useForm<z.infer<typeof CreateUserSchema>>({
     resolver: zodResolver(CreateUserSchema),
     mode: 'onSubmit',
@@ -67,8 +68,23 @@ export function RegisterForm({
   });
 
   async function onSubmit(values: z.infer<typeof CreateUserSchema>) {
-    // await form.trigger();
     console.log(values);
+    const body = values;
+    body.username =
+      slugify(body.firstName + ' ' + body.lastName, { delimiter: '_' }) +
+      Math.floor(Math.random() * 100);
+    // console.log(body);
+    startTransition(async () => {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      const result = await response.json();
+      console.log(result);
+    });
   }
 
   const handleKeyUp = async (fieldName: keyof FormData) => {
@@ -110,7 +126,7 @@ export function RegisterForm({
     // });
     // setDisabled(isValid);
   };
-  console.log(form.getFieldState('password').invalid);
+  // console.log(form.getFieldState('password').invalid);
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
