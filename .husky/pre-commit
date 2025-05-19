@@ -1,0 +1,5 @@
+echo "🏴󠁩󠁤󠁪󠁷󠁿 Type checking..."
+npx tsc --noEmit
+
+echo "🔍 Linting staged files..."
+npx lint-staged --concurrent false

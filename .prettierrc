@@ -1,0 +1,15 @@
+{
+  "endOfLine": "auto",
+  "printWidth": 100,
+  "trailingComma": "none",
+  "arrowParens": "always",
+  "semi": true,
+  "useTabs": false,
+  "tabWidth": 2,
+  "singleQuote": true,
+  "bracketSpacing": true,
+  "importOrder": ["^src/(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "formatOnSave": true
+}
